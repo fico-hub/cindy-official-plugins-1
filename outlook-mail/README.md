@@ -1,6 +1,6 @@
-# Outlook Mail for Cindy 1.1.2
+# Outlook Mail for Cindy 1.1.3
 
-A standalone plugin for Outlook/Hotmail/Live, Microsoft 365 and 21Vianet China mailboxes. Import `outlook-mail-1.1.2.cindy` into Cindy 0.1.75 or later and open its settings.
+A standalone plugin for Outlook/Hotmail/Live, Microsoft 365 and 21Vianet China mailboxes. Import `outlook-mail-1.1.3.cindy` into Cindy 0.1.75 or later and open its settings.
 
 On Apple Silicon Macs, global mailboxes default to direct browser sign-in using the bundled official Microsoft Graph PowerShell SDK. No user application registration is needed for this route. The consent screen identifies Microsoft Graph Command Line Tools because the actual official SDK is invoked; this plugin does not copy its Client ID into an independent OAuth client. Tenant consent restrictions still apply.
 
@@ -16,6 +16,8 @@ Bundled dependencies: PowerShell 7.6.5 macOS arm64 and Microsoft.Graph.Authentic
 
 Send success means `202 Accepted`, not confirmed delivery. Writes are not automatically retried. On `execution_status=unknown` or `executed` errors, inspect the mailbox before repeating. KQL has the 1000-message search limit; page tokens bind to account, cloud and action. Requests are capped at about 250 KB, 100 recipients and 50 results per page. Bodies above 50000 characters are explicitly truncated. Moves return a new message ID.
 
-Live personal Outlook authorization, read-only mailbox queries, process restart restoration and sign-out have passed. Actual writes, China and organizational tenant consent have not been tested live. Local tests cover writes using fixtures. Packaging is separate from installation validation. Run `node --test .tests/outlook-mail.test.mjs` from the repository root. Native PowerShell tests explicitly skip outside macOS arm64. See the PR description for device evidence. No official repository submission or public release has been performed.
+Live personal Outlook authorization, read-only mailbox queries, process restart restoration and sign-out have passed. Actual writes, China and organizational tenant consent have not been tested live. Local tests cover writes using fixtures. Packaging is separate from installation validation. Run `node --test .tests/outlook-mail.test.mjs` from the repository root. Native PowerShell tests explicitly skip outside macOS arm64. See the PR description for device evidence. No public release has been performed.
 
 This is an official-admission Draft. The included runtime exceeds the public platform limits (64 MiB unpacked / 256 entries). Do not merge or publish before resolving runtime delivery and receiving maintainer approval. Provisioning uses an empty targeted audience, with no automatic distribution. No publishing limits are changed. Full upstream notices are in THIRD-PARTY-LICENSES.txt.
+
+Runtime selection: 360 upstream files are retained unchanged; 276 unused files (about 83 MB) are omitted. See `node/RUNTIME-INVENTORY.json` for retained hashes and each exclusion reason. This is a plugin-specific subset, not a general-purpose PowerShell/Graph installation: command discovery, compilation, package management and interactive editing are not supported. Full upstream license texts remain included. Automated tests pass, but this reduced runtime still needs real browser/device login, cache refresh and production Cindy verification; earlier live results apply to the full-runtime development package only. The reduced package still exceeds the unpacked-size and entry-count limits.

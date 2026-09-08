@@ -14,3 +14,7 @@ All bundled upstream license/notice files are retained.
 Microsoft, Outlook, Hotmail and Microsoft 365 are trademarks of Microsoft.
 This independently authored package is not endorsed by Microsoft and uses no
 Microsoft brand icon. The Microsoft SDK performs its own authentication.
+
+This is a reduced macOS arm64 runtime for the fixed Outlook bridge.
+276 unused upstream files are omitted; remaining binaries and signed scripts
+are unchanged. Selection and hashes: node/RUNTIME-INVENTORY.json.

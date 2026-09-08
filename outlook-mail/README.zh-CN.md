@@ -1,10 +1,10 @@
-# Outlook 邮箱插件 1.1.2
+# Outlook 邮箱插件 1.1.3
 
 连接个人 Outlook / Hotmail / Live、Microsoft 365 企业邮箱，提供搜索、阅读、草稿、发送和邮件整理。
 
 ## 安装与登录
 
-1. 将 `outlook-mail-1.1.2.cindy` 导入 Cindy 0.1.75 或更新版本，打开「插件 → Outlook 邮箱」。
+1. 将 `outlook-mail-1.1.3.cindy` 导入 Cindy 0.1.75 或更新版本，打开「插件 → Outlook 邮箱」。
 2. 全球版邮箱在 Apple Silicon Mac 上默认选择「微软直接登录（免 Client ID）」，点击「连接账号」，在浏览器中登录现有邮箱。
 3. 选择「仅查看邮件」，或选择「读取、整理、草稿和发送」以使用全部基础功能。授权页面显示 **Microsoft Graph Command Line Tools**，因为插件实际调用随包附带的微软官方 Graph PowerShell SDK；插件没有复制这个应用的 Client ID 来实现自己的 OAuth。
 4. 企业租户若要求管理员批准，需要遵守其授权策略。微软官方工具身份不保证每个租户都允许登录。
@@ -54,3 +54,5 @@
 仓库根目录运行 `node --test .tests/outlook-mail.test.mjs`。实际 PowerShell 进程测试只在 macOS arm64 执行，其他平台明确 skip，纯逻辑测试照常执行。`.tests/outlook-mail/` 含模拟数据截图；没有真实账号或邮件内容。
 
 官方运行文件位于 `node/runtime/`，来源及许可见 `THIRD-PARTY-LICENSES.txt` 与 `node/THIRD-PARTY-NOTICES.txt`。自有应用配置脚本位于根目录 `scripts/configure-outlook-app.mjs`。仓库打包通过 `.github/scripts/package-plugin.sh`，当前会因上述大小限制被拒绝。
+
+运行环境精简：原样保留 360 个上游文件，剔除 276 个未使用文件（约 83 MB）；保留文件哈希和逐项删除理由见 `node/RUNTIME-INVENTORY.json`。这是插件专用子集，不是通用 PowerShell／Graph 安装包，不支持命令发现、源码编译、包管理和交互式编辑。完整上游许可文本仍随包保留。自动化测试已通过，但精简版仍需真实浏览器／设备码登录、缓存刷新及正式版 Cindy 验证；此前实机结果仅适用于包含完整运行环境的开发包。精简后仍超过解压大小和条目数上限。
