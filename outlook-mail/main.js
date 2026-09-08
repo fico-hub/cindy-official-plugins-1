@@ -319,6 +319,6 @@ if (typeof cindy !== 'undefined') cindy.onHostMessage(async msg => {
   } catch (err) {
     const known = err instanceof OutlookMail.MailError;
     cindy.send({type:'tool-result',callId:msg.callId,ok:false,errorCode:known ? err.code : 'MAIL_OPERATION_FAILED',
-      message:'[execution_status='+(known ? err.execution : 'unknown')+'] '+(known ? err.message : '操作未能完成，结果未知；请先检查邮箱状态，不要直接重复执行。')});
+      message:'[execution_status='+(known ? err.execution : 'unknown')+'] '+(known && err.execution !== 'unknown' ? err.message : '操作结果不确定；请先检查邮箱中的实际状态，不要直接重复执行。')});
   }
 });

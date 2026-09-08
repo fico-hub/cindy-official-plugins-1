@@ -1,10 +1,10 @@
-# Outlook 邮箱插件 1.1.1
+# Outlook 邮箱插件 1.1.2
 
 连接个人 Outlook / Hotmail / Live、Microsoft 365 企业邮箱，提供搜索、阅读、草稿、发送和邮件整理。
 
 ## 安装与登录
 
-1. 将 `outlook-mail-1.1.1.cindy` 导入 Cindy 0.1.75 或更新版本，打开「插件 → Outlook 邮箱」。
+1. 将 `outlook-mail-1.1.2.cindy` 导入 Cindy 0.1.75 或更新版本，打开「插件 → Outlook 邮箱」。
 2. 全球版邮箱在 Apple Silicon Mac 上默认选择「微软直接登录（免 Client ID）」，点击「连接账号」，在浏览器中登录现有邮箱。
 3. 选择「仅查看邮件」，或选择「读取、整理、草稿和发送」以使用全部基础功能。授权页面显示 **Microsoft Graph Command Line Tools**，因为插件实际调用随包附带的微软官方 Graph PowerShell SDK；插件没有复制这个应用的 Client ID 来实现自己的 OAuth。
 4. 企业租户若要求管理员批准，需要遵守其授权策略。微软官方工具身份不保证每个租户都允许登录。

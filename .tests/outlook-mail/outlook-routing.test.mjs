@@ -36,7 +36,7 @@ test('invalid writes fail before launching SDK and uncertain results remain unce
   const h=fixture({}, {ok:false,code:'SDK_TIMEOUT',execution_status:'unknown'});
   const invalid=await h.call({action:'send',to:'not-an-email'});assert.equal(invalid.ok,false);assert.equal(h.node.length,0);
   const r=await h.call({action:'send',to:'reader@example.test',subject:'fixture',body_text:'never sent'});
-  assert.equal(r.ok,false);assert.match(r.message,/execution_status=unknown/);assert.equal(h.node.length,1);
+  assert.equal(r.ok,false);assert.match(r.message,/execution_status=unknown/);assert.match(r.message,/先检查邮箱/);assert.match(r.message,/不要直接重复执行/);assert.equal(h.node.length,1);
 });
 test('completed settings messages are replayed without reconnecting or repeating state writes',async()=>{
   const account={id:'sdk:one',login:'user@example.test'};

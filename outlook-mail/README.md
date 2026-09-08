@@ -1,6 +1,6 @@
-# Outlook Mail for Cindy 1.1.1
+# Outlook Mail for Cindy 1.1.2
 
-A standalone plugin for Outlook/Hotmail/Live, Microsoft 365 and 21Vianet China mailboxes. Import `outlook-mail-1.1.1.cindy` into Cindy 0.1.75 or later and open its settings.
+A standalone plugin for Outlook/Hotmail/Live, Microsoft 365 and 21Vianet China mailboxes. Import `outlook-mail-1.1.2.cindy` into Cindy 0.1.75 or later and open its settings.
 
 On Apple Silicon Macs, global mailboxes default to direct browser sign-in using the bundled official Microsoft Graph PowerShell SDK. No user application registration is needed for this route. The consent screen identifies Microsoft Graph Command Line Tools because the actual official SDK is invoked; this plugin does not copy its Client ID into an independent OAuth client. Tenant consent restrictions still apply.
 
