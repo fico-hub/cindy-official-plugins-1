@@ -1,0 +1,16 @@
+Outlook Mail for Cindy — standalone development plugin
+
+Authoring references: https://github.com/makecindy/cindy-official-plugins
+Cindy Official Plugins: Copyright 2026 心动网络股份有限公司 (X.D. Network Inc.)
+This package uses Cindy's plugin runtime contract and a Forge-generated icon.
+
+Bundled third-party runtime:
+- Microsoft PowerShell 7.6.5 (macOS arm64), including its .NET runtime and modules.
+  Licenses: node/runtime/pwsh/LICENSE.txt and ThirdPartyNotices.txt, plus each module's notices.
+- Microsoft.Graph.Authentication 2.39.0 and its packaged dependencies.
+  Licenses: node/GRAPH-SDK-LICENSE.txt and node/THIRD-PARTY-NOTICES.txt.
+All bundled upstream license/notice files are retained.
+
+Microsoft, Outlook, Hotmail and Microsoft 365 are trademarks of Microsoft.
+This independently authored package is not endorsed by Microsoft and uses no
+Microsoft brand icon. The Microsoft SDK performs its own authentication.

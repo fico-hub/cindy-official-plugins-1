@@ -1,0 +1,13 @@
+{
+  "name": "Outlook Mail",
+  "description": "Search, read, send, draft and organize Microsoft mail. Global SDK sign-in without your own Client ID on Apple Silicon Mac; other devices and China require app configuration.",
+  "whenToUse": "Use for Outlook, Hotmail, Live and Microsoft 365 email, including 21Vianet China: connect accounts, find, read, send, draft and organize mail.",
+  "tools": {
+    "outlook_accounts": {
+      "description": "List accounts and setup in both clouds. Saved SDK logins restore on a mail action; no tokens are returned."
+    },
+    "outlook_mail": {
+      "description": "Search, read, send, draft, list folders, mark read/unread or move messages. Writes require explicit user intent; verify sender, recipients and content before sending. Send success means accepted, not delivered. If execution_status is unknown, inspect the mailbox before retrying. Reading does not mark read. Pagination binds to account/action. Microsoft cloud mailboxes only; no other providers or on-premises Exchange."
+    }
+  }
+}

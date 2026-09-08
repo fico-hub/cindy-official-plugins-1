@@ -1,0 +1,13 @@
+{
+  "name": "Outlook メール",
+  "description": "Microsoft メールの検索・閲覧・送信・下書き・整理。Apple Silicon Mac のグローバル版は独自 Client ID 不要。他の端末と中国版はアプリ設定が必要。",
+  "whenToUse": "Outlook、Hotmail、Live、Microsoft 365（中国 21Vianet を含む）のアカウント接続、メールの検索・閲覧・送信・下書き・整理に使用。",
+  "tools": {
+    "outlook_accounts": {
+      "description": "両クラウドのアカウントと設定を表示。SDK の saved ログインはメール操作時に復元します。トークンは返しません。"
+    },
+    "outlook_mail": {
+      "description": "検索、閲覧、送信、下書き、フォルダー一覧、既読／未読、移動。書き込みはユーザーの明確な指示が必要。送信前に送信元・宛先・本文を確認。成功は受付のみで配達確認ではありません。結果が unknown の場合は再実行前にメールボックスを確認。閲覧で既読にはしません。ページ情報はアカウントと操作に紐付きます。Microsoft クラウド専用。他社やオンプレミス Exchange は非対応。"
+    }
+  }
+}

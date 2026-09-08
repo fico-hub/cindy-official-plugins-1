@@ -65,6 +65,11 @@
         "emails": []
       },
       "tier": "builtin"
+    },
+    "outlook-mail": {
+      "audience": {
+        "emails": []
+      }
     }
   }
 }
