@@ -1,6 +1,6 @@
 {
   "title": "连接邮箱",
-  "intro": "连接现有微软邮箱。Apple Silicon Mac 的全球版可直接登录，无需申请 Client ID。",
+  "intro": "连接现有微软邮箱，由 Cindy 托管 OAuth 授权和令牌。",
   "region": "邮箱服务",
   "global": "Outlook / Microsoft 365（全球版）",
   "china": "Microsoft 365（世纪互联中国区）",
@@ -13,7 +13,7 @@
   "save": "保存应用",
   "reset": "清除自定义应用",
   "portal": "前往微软应用注册",
-  "permissions": "登录权限由微软页面确认。只读模式不能发送或整理邮件；企业策略可能要求管理员批准。",
+  "permissions": "申请账号身份、邮件读写、发送及离线访问权限；企业策略可能要求管理员批准。",
   "defaultService": "默认邮箱服务",
   "customReady": "当前使用自定义应用。",
   "builtInReady": "应用已就绪，可以连接账号。",
@@ -45,17 +45,5 @@
   "ACCOUNT_LIMIT": "账号数量已达上限，请先断开不再使用的账号。",
   "VAULT_WRITE_FAILED": "保存授权失败，请检查本地存储后重试。",
   "LISTEN_FAILED": "本地登录回调端口被占用，请关闭其他登录窗口后重试。",
-  "SERVICE_UNAVAILABLE": "授权服务暂不可用，请稍后重试。",
-  "connectionMethod": "登录方式",
-  "sdkMethod": "微软直接登录（免 Client ID）",
-  "directMethod": "使用自有微软应用",
-  "sdkHelp": "随包包含 Apple Silicon Mac 所需的微软登录工具。凭证由微软 SDK 缓存管理，可能与本机其他微软 SDK 脚本共用。",
-  "emailHint": "邮箱地址（可选）",
-  "accessMode": "邮件权限",
-  "fullAccess": "读取、整理、草稿和发送",
-  "readAccess": "仅查看邮件",
-  "sdkUnsupported": "此安装包的免 Client ID 登录支持 Apple Silicon Mac；其他设备请选择自有微软应用。",
-  "sdkUnavailable": "本地邮箱服务不可用，请重新打开设置页，或重新安装完整插件包。",
-  "sdkReady": "可以直接登录现有 Outlook 或全球版 Microsoft 365 邮箱。",
-  "savedLogin": "已保存登录，操作邮件时自动尝试恢复"
+  "SERVICE_UNAVAILABLE": "授权服务暂不可用，请稍后重试。"
 }

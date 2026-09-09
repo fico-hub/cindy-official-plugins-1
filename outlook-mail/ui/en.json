@@ -1,6 +1,6 @@
 {
   "title": "Connect your mailbox",
-  "intro": "Connect an existing Microsoft mailbox. Global sign-in on Apple Silicon Mac needs no application registration.",
+  "intro": "Connect an existing Microsoft mailbox. Cindy manages OAuth authorization and tokens.",
   "region": "Email service",
   "global": "Outlook / Microsoft 365 (global)",
   "china": "Microsoft 365 China (21Vianet)",
@@ -13,7 +13,7 @@
   "save": "Save application",
   "reset": "Clear custom application",
   "portal": "Microsoft application registration",
-  "permissions": "Confirm permissions on the Microsoft page. Read-only access cannot send or organize mail. Enterprise policy may require administrator approval.",
+  "permissions": "Permissions: account identity, mail read/write and sending, and offline access. Enterprise policies may require administrator approval.",
   "defaultService": "Default email service",
   "customReady": "Using your custom application.",
   "builtInReady": "Application ready. Connect your account to continue.",
@@ -45,17 +45,5 @@
   "ACCOUNT_LIMIT": "Account limit reached. Disconnect an unused account first.",
   "VAULT_WRITE_FAILED": "Unable to save authorization. Check local storage and try again.",
   "LISTEN_FAILED": "The local sign-in callback port is occupied. Close the other sign-in window and retry.",
-  "SERVICE_UNAVAILABLE": "The authorization service is unavailable. Try again later.",
-  "connectionMethod": "Sign-in method",
-  "sdkMethod": "Microsoft sign-in (no Client ID)",
-  "directMethod": "Use your own Microsoft application",
-  "sdkHelp": "Microsoft sign-in tools for Apple Silicon Mac are bundled. Credentials use the SDK cache, which may be shared with other local Microsoft SDK scripts.",
-  "emailHint": "Email address (optional)",
-  "accessMode": "Mail permissions",
-  "fullAccess": "Read, organize, draft and send",
-  "readAccess": "Read only",
-  "sdkUnsupported": "Bundled sign-in supports Apple Silicon Mac. On other devices, select your own Microsoft application.",
-  "sdkUnavailable": "The local mail service is unavailable. Reopen settings or reinstall the complete plugin package.",
-  "sdkReady": "Sign in with an existing Outlook or global Microsoft 365 mailbox.",
-  "savedLogin": "Login saved; mail operations attempt to restore it"
+  "SERVICE_UNAVAILABLE": "The authorization service is unavailable. Try again later."
 }

@@ -12,10 +12,10 @@ const fixture=[
   {key:'outlook_global',clientConfigured:true,accounts:[{id:'g1',label:'Global',status:'connected',isDefault:true},{id:'g2',label:'Second',status:'connected',isDefault:false}]},
   {key:'outlook_china',clientConfigured:true,accounts:[{id:'c1',label:'China',status:'connected',isDefault:true}]},
 ];
-function harness({accounts=structuredClone(fixture),config={},reply=response({value:[]})}={}) {
+function harness({accounts=structuredClone(fixture),config={},localFailure=false,reply=response({value:[]})}={}) {
   const requests=[],results=[],locals=[];let listener;
   const context=vm.createContext({URL,URLSearchParams,TextEncoder,TextDecoder,btoa,atob,
-    fetch:async path=>{locals.push(path);return {ok:true,json:async()=>path==='/oauth'?accounts:{global_connection:'direct',...config}};},
+    fetch:async path=>{locals.push(path);if(localFailure)throw new Error('private local failure');return {ok:true,json:async()=>path==='/oauth'?accounts:config};},
     cindy:{onHostMessage:fn=>listener=fn,send:r=>results.push(r),fetch:async req=>{requests.push(req);if(reply instanceof Error)throw reply;return typeof reply==='function'?reply(req):reply;}},
   });
   vm.runInContext(source,context);
@@ -27,9 +27,9 @@ const send={action:'send',to:'reader@example.test',subject:'Test',body_text:'Hel
 const mutation=(action)=> ['send','draft'].includes(action) ? {...send,action} : action === 'move' ? {action,message_id:'old/id+=',target_folder:'target/id'} : {action,message_id:'old/id+='};
 const ctx={base:'https://graph.microsoft.com/v1.0',cloud:'global',account:'g1'};
 
-test('SDK account inspection is not gated by optional native OAuth credentials',async()=>{
-  // Host otherwise infers that one declared OAuth secret must be connected,
-  // preventing the SDK route from ever reaching the plugin after installation.
+test('account setup can be inspected before either cloud is configured',async()=>{
+  // Configuration inspection remains available before connecting. Mail actions
+  // separately require a configured application and a connected account.
   assert.deepEqual(manifest.setup,{requires:[]});
   const entries=structuredClone(fixture);
   for(const e of entries){e.clientConfigured=false;e.accounts=[];}
@@ -193,4 +193,52 @@ test('successful malformed write response is executed, never claimed unsent',asy
 });
 test('truncated reads are errors, not silently incomplete successful data',async()=>{
   const h=harness({reply:response({value:[]},200,{truncated:true})});const r=await h.call({action:'search'});assert.equal(r.errorCode,'INVALID_RESPONSE');
+});
+
+test('plugin uses only Host OAuth and bundles no executable runtime',()=>{
+  assert.equal(manifest.node,undefined);
+  assert.equal(fs.existsSync(new URL('../../outlook-mail/node',import.meta.url)),false);
+  assert.doesNotMatch(source,/cindy\.node|OutlookSdk|BroadcastChannel|Connect-MgGraph/);
+});
+test('legacy SDK preferences cannot restore an account or route requests',async()=>{
+  const h=harness({config:{global_connection:'sdk',sdk_account:{id:'sdk:old',login:'old@example.test'},sdk_mode:'full'}});
+  const list=await h.accounts();assert(list.ok);assert.doesNotMatch(JSON.stringify(list),/sdk:old|old@example/);
+  assert((await h.call({action:'search'})).ok);assert.equal(h.requests[0].authAccount,'g1');
+  const r=await h.call({...send,account:'sdk:old'});
+  assert.equal(r.errorCode,'ACCOUNT_NOT_FOUND');assert.match(r.message,/not_executed/);assert.equal(h.requests.length,1);
+});
+test('disconnected Host account is never restored from old KV state',async()=>{
+  const accounts=structuredClone(fixture);accounts[0].accounts=[];
+  const h=harness({accounts,config:{sdk_account:{id:'sdk:old'},global_connection:'sdk'}});
+  const r=await h.call(send);assert.equal(r.errorCode,'ACCOUNT_NOT_CONNECTED');assert.match(r.message,/not_executed/);
+  assert.equal(h.requests.length,0);assert(h.locals.every(p=>p==='/oauth'||p==='/kv'));
+});
+test('local account state failure is known not executed and does not expose raw errors',async()=>{
+  const h=harness({localFailure:true});const r=await h.call(send);
+  assert.equal(r.errorCode,'LOCAL_STATE_FAILED');assert.match(r.message,/not_executed/);assert.doesNotMatch(r.message,/private/);assert.equal(h.requests.length,0);
+});
+test('every accepted but malformed mutation preserves executed and prohibits blind retry',async()=>{
+  for(const action of ['draft','mark_read','mark_unread','move']) {
+    for(const reply of [{ok:true,status:201,body:'bad json'},response({id:'m'},200,{truncated:true}),response({},200)]) {
+      const h=harness({reply});const r=await h.call(mutation(action));
+      assert.equal(r.ok,false);assert.match(r.message,/execution_status=executed/);
+      assert.match(r.message,/先检查邮箱/);assert.doesNotMatch(r.message,/稍后重试|后重试/);assert.equal(h.requests.length,1);
+    }
+  }
+});
+test('four settings locales contain the same translated UI keys',()=>{
+  const en=JSON.parse(fs.readFileSync(new URL('../../outlook-mail/ui/en.json',import.meta.url)));
+  for(const lang of ['zh-CN','en','ja','ko']) {
+    const ui=JSON.parse(fs.readFileSync(new URL('../../outlook-mail/ui/'+lang+'.json',import.meta.url)));
+    assert.deepEqual(Object.keys(ui).sort(),Object.keys(en).sort());
+    assert(Object.values(ui).every(v=>typeof v==='string'&&v.length>0));
+    if(lang!=='en')assert.notEqual(ui.title,en.title);
+  }
+});
+
+test('invalid Host response status never reports a write as definitely unexecuted',async()=>{
+  for(const status of [undefined,0,'200',999]){
+    const h=harness({reply:{ok:true,status,body:'{}'}});const r=await h.call(send);
+    assert.equal(r.ok,false);assert.match(r.message,/execution_status=unknown/);assert.equal(h.requests.length,1);
+  }
 });

@@ -1,8 +1,6 @@
 # 微软应用注册与发布配置
 
-本说明只适用于「使用自有微软应用」登录及世纪互联中国区。1.1.0 在 Apple Silicon Mac 上的全球版默认使用微软官方 SDK 登录，不需要用户注册应用。
-
-自有应用由插件维护者／企业 IT 一次性配置。发布者可配置公开 Client ID 后重新打包，普通用户不应逐个创建应用。当前包未内置自有应用 ID，因此不能承诺中国区或其他设备零配置连接。
+2.0.0 统一使用 Cindy Host 托管 OAuth + PKCE。发布者／企业 IT 为支持的区域一次性配置公共应用 Client ID，普通用户再登录授权；无需客户端密钥。当前源码没有已注册的 Client ID，所以尚不能开箱登录。
 
 ## 两个独立注册
 
@@ -34,14 +32,14 @@ node scripts/configure-outlook-app.mjs global <已注册的全球版应用Client
 node scripts/configure-outlook-app.mjs china <已注册的中国区应用Client-ID>
 ```
 
-脚本只接受公开 UUID，只更新选定区域的 clientId。注册设置和真实登录验证仍必须完成，UUID 格式正确不代表应用已正确注册。没有中国区应用时，不能宣称中国区开箱即用。
+脚本只接受公开 UUID，只更新选定区域的 clientId。注册设置和真实登录验证仍必须完成，UUID 格式正确不代表应用已正确注册。未配置对应区域的应用时，不能宣称该区域开箱即用。
 
-完整实测后用 Cindy Forge 重新打包。官方仓的新插件准入需要提案、维护者确认、明确受众和实机验证；当前工作没有创建 issue、PR 或发布。
+配置后递增插件版本并重新打包，在正式版 Cindy 安装最终包、验证真实授权和邮件操作。提案 #105 和 PR #106 的准入及生产验证仍需维护者确认。
 
 ## 官方参考
 
 - 云区与端点：https://learn.microsoft.com/en-us/graph/deployments
-- 桌面应用注册：https://learn.microsoft.com/en-us/entra/identity-platform/scenario-desktop-app-registration
+- 桌面应用注册：https://learn.microsoft.com/en-us/entra/identity-platform/scenario-desktop-app-configuration
 - 回调限制及 127.0.0.1：https://learn.microsoft.com/en-us/entra/identity-platform/reply-url
 - Graph 邮件列表：https://learn.microsoft.com/en-us/graph/api/user-list-messages?view=graph-rest-1.0
 - 发送接受状态：https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0

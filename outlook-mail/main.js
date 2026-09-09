@@ -79,9 +79,13 @@ var OutlookMail = (() => {
     }
   }
   async function local(path) {
-    const r = await fetch(path);
-    if (!r.ok) throw new MailError('LOCAL_STATE_FAILED','无法读取插件配置，请重新打开插件详情页后重试。');
-    return r.json();
+    try {
+      const r = await fetch(path);
+      if (!r.ok) throw new Error('LOCAL_STATE_FAILED');
+      return await r.json();
+    } catch (_) {
+      throw new MailError('LOCAL_STATE_FAILED','无法读取插件配置，请重新打开插件详情页后重试。');
+    }
   }
   async function accounts() {
     const entries = await local('/oauth');
@@ -102,7 +106,7 @@ var OutlookMail = (() => {
       cloud = found[0].cloud;
     }
     if (!cloud) {
-      const cfg = await local('/kv');
+      const cfg = await local('/kv') || {};
       cloud = Object.hasOwn(CLOUDS,cfg.default_cloud) ? cfg.default_cloud : 'global';
     }
     const g = groups.find(g => g.cloud === cloud);
@@ -185,10 +189,11 @@ var OutlookMail = (() => {
   async function api(request,ctx,callId,action,transport) {
     const write = WRITES.includes(action);
     let r;
-    try { r = await transport({...request,callId,authAccount:ctx.account,timeoutMs:30000,
+    try { r = await transport({...request,callId,authAccount:ctx.account,as:'text',timeoutMs:30000,
       headers:{Accept:'application/json',Prefer:'outlook.body-content-type="text"',...(request.body ? {'Content-Type':'application/json'} : {})}}); }
     catch (_) { throw new MailError('REQUEST_FAILED','连接中断；'+(write ? '结果未知，请先检查邮箱，勿直接重复执行。' : '请检查网络后重试。'),write ? 'unknown' : 'not_executed'); }
     if (!r.ok) throw new MailError('REQUEST_FAILED','主机未能完成请求；'+(write ? '结果未知，请先检查邮箱，勿直接重复执行。' : '请检查账号授权和网络后重试。'),write ? 'unknown' : 'not_executed');
+    if (!Number.isInteger(r.status) || r.status < 100 || r.status > 599) throw new MailError('INVALID_RESPONSE','主机未返回有效的 HTTP 状态，请检查邮箱中的实际状态。',write ? 'unknown' : 'not_executed');
     const success = r.status >= 200 && r.status < 300;
     const state = success && write ? 'executed' : write && (r.status >= 500 || r.status === 408) ? 'unknown' : 'not_executed';
     let data = null;
@@ -229,96 +234,22 @@ var OutlookMail = (() => {
   }
   return {CLOUDS,MailError,validate,build,accounts,run,encodePage,decodePage};
 })();
-var OutlookSdk = (() => {
-  const messages={
-    SDK_PLATFORM_UNSUPPORTED:'免 Client ID 登录目前随包支持 Apple Silicon Mac；此设备请在设置页选择自有应用登录。',
-    SDK_RUNTIME_UNAVAILABLE:'插件运行依赖不可用，请重新安装完整的 Outlook 插件包。',
-    SDK_CHINA_UNSUPPORTED:'世纪互联中国区请使用设置页的中国区应用配置入口。',
-    SDK_BUSY:'已有邮箱操作或登录正在进行，请等待完成。',
-    SDK_TIMEOUT:'微软登录或请求等待超时，请在插件设置页重新连接。',
-    ACCOUNT_NOT_CONNECTED:'请先在插件设置页连接 Outlook 邮箱。',
-    ACCOUNT_NOT_FOUND:'指定账号与当前连接不一致，请重新查询 outlook_accounts。',
-    ACCOUNT_MISMATCH:'微软返回的账号与保存的邮箱不一致，已停止操作；请在设置页核对账号。',
-    WRITE_SCOPE_REQUIRED:'当前只有读取权限，请在插件设置页选择邮件读写与发送权限并重新连接。',
-    GRAPH_REQUEST_FAILED:'微软拒绝了邮件请求，请检查授权、邮件 ID 或稍后重试。',
-  };
-  async function config(){const r=await fetch('/kv');if(!r.ok)throw new OutlookMail.MailError('LOCAL_STATE_FAILED','无法读取邮箱设置。');return r.json();}
-  function uses(a,c){
-    if(a.account)return a.account.startsWith('sdk:');
-    return (a.cloud||c.default_cloud||'global')==='global'&&c.global_connection!=='direct';
-  }
-  async function call(method,params={}){
-    let r;
-    try{r=await cindy.node.request({method,params,timeoutMs:60000,maxTotalMs:150000});}
-    catch{throw new OutlookMail.MailError('SDK_REQUEST_FAILED','本地邮箱服务中断，请检查账号状态后重试。','unknown');}
-    if(!r?.ok)throw new OutlookMail.MailError('SDK_REQUEST_FAILED','本地邮箱服务未完成请求，请检查账号状态后重试。','unknown');
-    const v=r.result;
-    if(!v?.ok)throw new OutlookMail.MailError(v?.code||'SDK_REQUEST_FAILED',messages[v?.code]||'微软邮箱操作未完成，请在插件设置页检查连接后重试。',v?.execution_status||'unknown');
-    return v.value;
-  }
-  async function accounts(){
-    const c=await config(),regions=await OutlookMail.accounts();
-    if(c.global_connection==='direct')return {regions};
-    const s=await call('account/status'),a=s.account||c.sdk_account;
-    const g=regions.find(g=>g.cloud==='global');
-    Object.assign(g,{configured:s.supported&&s.runtime_ready,auth_method:'microsoft_sdk',runtime_supported:s.supported,
-      accounts:a?[{id:a.id,label:a.login,status:s.connected?'connected':'saved',is_default:true,
-        note:s.connected?undefined:'调用邮件操作时尝试恢复保存的登录。'}]:[]});
-    return {regions};
-  }
-  async function settings(action,p={}){
-    if(action==='status')return call('account/status');
-    if(action==='connect'){
-      const c=await config();
-      const s=await call('account/connect',{mode:p.mode,loginHint:p.loginHint,...(c.sdk_account?{saved:c.sdk_account}:{})});
-      const fresh=await config();
-      const r=await fetch('/kv',{method:'PUT',body:JSON.stringify({...fresh,global_connection:'sdk',sdk_account:s.account,sdk_mode:s.mode})});
-      if(!r.ok)throw new OutlookMail.MailError('LOCAL_STATE_FAILED','邮箱已连接，但保存账号信息失败，请重新打开设置页。','executed');
-      return s;
-    }
-    if(action==='disconnect'){
-      await call('account/disconnect');
-      const c=await config();delete c.sdk_account;delete c.sdk_mode;
-      const r=await fetch('/kv',{method:'PUT',body:JSON.stringify(c)});
-      if(!r.ok)throw new OutlookMail.MailError('LOCAL_STATE_FAILED','清除账号信息失败，请重新打开设置页。');
-      return {disconnected:true};
-    }
-    throw new OutlookMail.MailError('INVALID_ARGUMENT','未知设置操作。');
-  }
-  return {config,uses,call,accounts,settings};
-})();
-if(typeof cindy!=='undefined'&&typeof BroadcastChannel==='function'){
-  const channel=new BroadcastChannel('outlook-sdk-settings');
-  const pending=new Map();
-  channel.onmessage=async event=>{
-    const m=event.data;
-    if(m?.type!=='settings-request'||typeof m.reqId!=='string'||m.reqId.length>100)return;
-    if(pending.has(m.reqId)){const cached=pending.get(m.reqId);if(cached)channel.postMessage(cached);return;}
-    pending.set(m.reqId,null);
-    let response;
-    try{response={type:'settings-response',reqId:m.reqId,ok:true,result:await OutlookSdk.settings(m.action,m.payload)};}
-    catch(e){response={type:'settings-response',reqId:m.reqId,ok:false,code:e.code,message:e.message};}
-    pending.set(m.reqId,response);channel.postMessage(response);
-    // Retain completed settings responses to make wake-up retries idempotent.
-    if(pending.size>100)for(const [id,value] of pending){if(value&&id!==m.reqId){pending.delete(id);break;}}
-  };
-}
+// OAuth, token refresh and Authorization injection belong to the Host.
+// The plugin receives account metadata only; every mail request uses cindy.fetch.
 if (typeof cindy !== 'undefined') cindy.onHostMessage(async msg => {
   if (msg.type !== 'tool-call') return;
   try {
     let result;
-    if (msg.tool === 'outlook_accounts') result = await OutlookSdk.accounts();
-    else if (msg.tool === 'outlook_mail') {
-      const a=msg.args||{};OutlookMail.validate(a);
-      const cfg=await OutlookSdk.config();
-      result=OutlookSdk.uses(a,cfg)?await OutlookSdk.call('mail/action',{args:a,saved:cfg.sdk_account,mode:cfg.sdk_mode}):
-        await OutlookMail.run(a,msg.callId,req=>cindy.fetch(req));
-    }
+    if (msg.tool === 'outlook_accounts') result = {regions:await OutlookMail.accounts()};
+    else if (msg.tool === 'outlook_mail') result = await OutlookMail.run(msg.args || {},msg.callId,req=>cindy.fetch(req));
     else throw new OutlookMail.MailError('UNKNOWN_MAIL_TOOL','未知邮件工具，请重新获取插件工具清单。');
-    cindy.send({type:'tool-result',callId:msg.callId,ok:true,result});
+    await cindy.send({type:'tool-result',callId:msg.callId,ok:true,result});
   } catch (err) {
     const known = err instanceof OutlookMail.MailError;
-    cindy.send({type:'tool-result',callId:msg.callId,ok:false,errorCode:known ? err.code : 'MAIL_OPERATION_FAILED',
-      message:'[execution_status='+(known ? err.execution : 'unknown')+'] '+(known && err.execution !== 'unknown' ? err.message : '操作结果不确定；请先检查邮箱中的实际状态，不要直接重复执行。')});
+    const execution = known ? err.execution : 'unknown';
+    const message = execution === 'unknown' ? '操作结果不确定；请先检查邮箱中的实际状态，不要直接重复执行。'
+      : execution === 'executed' ? '服务已接受操作，但结果未能完整返回；请先检查邮箱中的实际状态，不要直接重复执行。' : err.message;
+    await cindy.send({type:'tool-result',callId:msg.callId,ok:false,errorCode:known ? err.code : 'MAIL_OPERATION_FAILED',
+      message:'[execution_status='+execution+'] '+message});
   }
 });

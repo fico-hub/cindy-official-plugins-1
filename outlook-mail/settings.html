@@ -6,16 +6,6 @@
   <label for="cloud" data-i18n="region">Email service</label>
   <select id="cloud"><option value="global" data-i18n="global">Outlook / Microsoft 365</option><option value="china" data-i18n="china">Microsoft 365 China (21Vianet)</option></select>
   <p class="hint" data-i18n="boundary">The region belongs to your email service, independently of your Cindy region. Other providers and on-premises Exchange are not supported.</p>
-  <div id="connection-options">
-    <label for="connection-mode" data-i18n="connectionMethod">Sign-in method</label>
-    <select id="connection-mode"><option value="sdk" data-i18n="sdkMethod">Microsoft sign-in — no Client ID</option><option value="direct" data-i18n="directMethod">Your own Microsoft application</option></select>
-  </div>
-  <div id="sdk-options" hidden>
-    <p class="hint" data-i18n="sdkHelp">Includes the Microsoft sign-in tools for Apple Silicon Mac. Microsoft manages the secure login cache.</p>
-    <label for="sdk-email" data-i18n="emailHint">Email address (optional)</label><input id="sdk-email" type="email" autocomplete="username" placeholder="you@outlook.com">
-    <label for="sdk-mode" data-i18n="accessMode">Mail permissions</label>
-    <select id="sdk-mode"><option value="full" data-i18n="fullAccess">Read, organize, draft and send</option><option value="read" data-i18n="readAccess">Read only</option></select>
-  </div>
   <p id="default-label" class="hint"></p>
   <button id="default-cloud" type="button" data-i18n="defaultCloud">Use this service by default</button>
   <div id="accounts" aria-live="polite"></div>
