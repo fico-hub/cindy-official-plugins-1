@@ -1,4 +1,4 @@
-# Outlook Mail for Cindy 2.0.0
+# Outlook Mail for Cindy 2.0.1
 
 Search, read, draft, send and organize Outlook, Hotmail, Live and Microsoft 365 cloud mail. Global and 21Vianet China accounts are isolated, with multiple accounts and a default per cloud. Other mail providers and on-premises Exchange opened in Outlook are not supported.
 
@@ -10,7 +10,7 @@ The plugin uses Cindy's browser sandbox and has no Node worker, PowerShell, Micr
 
 ## Connect
 
-Install on Cindy 0.1.75 or later, open plugin settings, select the mailbox's service region and connect an account. Settings support Chinese, English, Japanese and Korean. The publisher or enterprise IT must configure a registered public Microsoft application Client ID for each supported region; no client secret is needed. This source currently has no registered Client ID. The connection button remains disabled until a publisher-provided or custom app is configured. See [application setup](APPLICATION-SETUP.md). Once the publisher configures an app, ordinary users only authorize their own accounts.
+Install on Cindy 0.1.75 or later, open plugin settings, select the mailbox's service region and connect an account. Settings support Chinese, English, Japanese and Korean. The publisher or enterprise IT must configure a registered public Microsoft application Client ID for each supported region; no client secret is needed. The global cloud now includes the administrator-provided public Client ID, so users can start sign-in without entering an application ID. China still requires a separately registered application; its connection button stays disabled until configured. See [application setup](APPLICATION-SETUP.md). Ordinary users authorize their own accounts through the configured application.
 
 Global accounts request User.Read, Mail.ReadWrite, Mail.Send, openid and offline_access. China uses the matching China Graph resource scopes. These are delegated user permissions, not tenant-wide application permissions. Tenant policy can require administrator consent. The settings page delegates connect, disconnect and default-account management to the Host; it stores only the default region in plugin KV.
 
@@ -24,6 +24,6 @@ Requests are capped at approximately 250 KB, 100 recipients and 50 results per p
 
 2.0.0 replaces the SDK authentication route. Former SDK sessions and saved SDK account metadata are not reused; reconnect through Host OAuth. Other local Microsoft tools' credential caches are not read or cleared. There is no automatic login restoration from legacy plugin KV.
 
-Run `node --test .tests/outlook-mail.test.mjs` and the repository contract/localization/provisioning/publish-workflow tests. Package with `.github/scripts/package-plugin.sh outlook-mail /tmp/outlook-mail-2.0.0.cindy` after committing. Browser tests use mocked Host endpoints and synthetic accounts, not real OAuth evidence; see `.tests/outlook-mail/settings-browser.mjs`.
+Run `node --test .tests/outlook-mail.test.mjs` and the repository contract/localization/provisioning/publish-workflow tests. Package with `.github/scripts/package-plugin.sh outlook-mail /tmp/outlook-mail-2.0.1.cindy` after committing. Browser tests use mocked Host endpoints and synthetic accounts, not real OAuth evidence; see `.tests/outlook-mail/settings-browser.mjs`.
 
-No live Host OAuth sign-in or production-client mail verification has been completed for this version because a registered application ID is unavailable. Earlier SDK development-package results do not validate this version. New-plugin admission and final production verification remain maintainer review items. Provisioning is an empty targeted audience, with no automatic distribution. The PR remains open for review; tests and package limits are not weakened.
+The administrator supplied the global public application ID on 2026-09-09. Its registered redirect URI, supported account types and delegated permissions still require real sign-in verification. No live Host OAuth sign-in or production-client mail verification has been completed for this version. Earlier SDK development-package results do not validate this version. New-plugin admission and final production verification remain maintainer review items. Provisioning is an empty targeted audience, with no automatic distribution. The PR remains open for review; tests and package limits are not weakened.
