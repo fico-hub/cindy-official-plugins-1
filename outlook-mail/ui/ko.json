@@ -1,12 +1,12 @@
 {
   "title": "메일 연결",
   "intro": "기존 Microsoft 메일을 연결합니다. OAuth 인증과 토큰은 Cindy가 관리합니다.",
-  "region": "메일 서비스",
+  "region": "추가할 계정의 메일 서비스",
   "global": "Outlook / Microsoft 365(글로벌)",
   "china": "Microsoft 365 중국(21Vianet)",
   "boundary": "Cindy 지역이 아닌 메일 서비스 지역을 선택하세요. 다른 제공업체와 온프레미스 Exchange는 지원하지 않습니다.",
   "defaultCloud": "이 서비스를 기본값으로 설정",
-  "connect": "계정 연결",
+  "connect": "계정 추가",
   "advanced": "앱 설정",
   "setupHelp": "플러그인 관리자 또는 사내 IT 담당자용: 공용 데스크톱 앱을 등록하고 Client ID를 입력하세요. 클라이언트 암호는 필요하지 않습니다. 앱 변경 시 기존 계정을 다시 연결해야 합니다.",
   "redirect": "등록할 리디렉션 URI",
@@ -45,5 +45,7 @@
   "ACCOUNT_LIMIT": "계정 수가 한도에 도달했습니다. 사용하지 않는 계정을 해제하세요.",
   "VAULT_WRITE_FAILED": "인증을 저장할 수 없습니다. 로컬 저장소를 확인하세요.",
   "LISTEN_FAILED": "로컬 콜백 포트가 사용 중입니다. 다른 로그인 창을 닫고 다시 시도하세요.",
-  "SERVICE_UNAVAILABLE": "인증 서비스를 사용할 수 없습니다. 나중에 다시 시도하세요."
+  "SERVICE_UNAVAILABLE": "인증 서비스를 사용할 수 없습니다. 나중에 다시 시도하세요.",
+  "accountsTitle": "모든 메일 계정",
+  "multiAccountHelp": "글로벌과 중국 계정을 동시에 연결할 수 있습니다. 위의 서비스 선택은 계정 추가 위치만 정하며 다른 계정의 연결을 해제하지 않습니다. 지역별로 기본 계정을 설정합니다."
 }

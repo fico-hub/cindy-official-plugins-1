@@ -12,6 +12,7 @@ const errors=[],unexpected=[],calls=[];
 page.on('pageerror',e=>errors.push(e.message));
 let entries=[{key:'outlook_global',clientConfigured:false,clientCustom:false,accounts:[]},{key:'outlook_china',clientConfigured:false,clientCustom:false,accounts:[]}];
 let config={sdk_account:{id:'sdk:old',login:'legacy@example.test'},global_connection:'sdk',keep:'preference'},locale='zh-CN',mode='light',failLoad=false,failDisconnect=false;
+let nextAccount='g1';
 const theme={light:':root{--text-primary:#202020;--text-secondary:#646464;--surface:#fff;--border-default:#dededb;--accent-cta-bg:#262626;--accent-pure-cta-fg:#fff}body{background:#fafaf8}',dark:':root{--text-primary:#ededeb;--text-secondary:#aaa;--surface:#262626;--border-default:#464644;--accent-cta-bg:#eee;--accent-pure-cta-fg:#171717}body{background:#202020}'};
 await page.route('**/*',async route=>{
   const req=route.request(),u=new URL(req.url()),path=u.pathname;
@@ -31,8 +32,10 @@ await page.route('**/*',async route=>{
       e.accounts.forEach(a=>a.status='expired');return reply(null,204);
     }
     if(operation==='connect'){
-      const a={id:key+'-test',label:'<img src=x onerror=alert(1)> user@example.test',status:'connected',isDefault:true};
-      e.accounts=[a];return reply({ok:true,account:a});
+      let a=e.accounts.find(a=>a.id===nextAccount);
+      if(a){a.status='connected';a.scopeStale=false;}
+      else {a={id:nextAccount,label:'<img src=x onerror=alert(1)> '+nextAccount+'@example.test',status:'connected',isDefault:e.accounts.length===0};e.accounts.push(a);}
+      return reply({ok:true,account:a});
     }
     if(operation==='accounts'){
       if(failDisconnect)return reply({},503);
@@ -58,17 +61,41 @@ try {
   assert.equal(calls.at(-1).path,'/oauth/outlook_global/client');assert(!calls.at(-1).body.includes('clientSecret'));assert.equal(await page.locator('#client-id').inputValue(),'');
   await page.locator('#connect').click();await settled();
   assert.equal(calls.at(-1).path,'/oauth/outlook_global/connect');assert.equal(await page.locator('#accounts img').count(),0);
-  entries[0].accounts[0].label='演示账号 · user@example.test';
-  await page.reload();await settled();
-  await fs.mkdir(screenshots,{recursive:true});
-  await page.screenshot({path:fileURLToPath(new URL('outlook-host-settings-light.png',screenshots)),fullPage:true});
-  const kvWrites=()=>calls.filter(c=>c.path==='/kv').length;
-  const before=kvWrites();failDisconnect=true;
-  await page.getByRole('button',{name:'断开',exact:true}).click();await settled();assert.equal(entries[0].accounts.length,1);assert.equal(kvWrites(),before);
-  failDisconnect=false;await page.getByRole('button',{name:'断开',exact:true}).click();await settled();assert.equal(entries[0].accounts.length,0);assert.equal(kvWrites(),before);
+  const row=(cloud,id)=>page.locator('[data-cloud="'+cloud+'"] [data-account-id="'+id+'"]');
+  nextAccount='g2';await page.locator('#connect').click();await settled();
   await page.locator('#cloud').selectOption('china');await settled();assert(await page.locator('#connect').isDisabled());
   assert.equal(await page.locator('#redirect').textContent(),'http://127.0.0.1:53688/callback');
+  await page.locator('#client-id').fill('abcdef01-1234-1234-1234-123456789abc');await page.locator('#save-client').click();await settled();
+  for(const id of ['c1','c2']){nextAccount=id;await page.locator('#connect').click();await settled();}
+  assert.deepEqual(entries.map(e=>e.accounts.map(a=>a.id)),[['g1','g2'],['c1','c2']]);
+  assert.equal(await page.locator('.account').count(),4);
+  await page.locator('#cloud').selectOption('global');await settled();
+  // China row actions must stay in China even with the global add-account selector.
+  await row('china','c2').getByRole('button',{name:'设为默认',exact:true}).click();await settled();
+  assert.equal(calls.at(-1).path,'/oauth/outlook_china/default');
+  assert.equal(entries[0].accounts.find(a=>a.isDefault).id,'g1');
+  assert.equal(entries[1].accounts.find(a=>a.isDefault).id,'c2');
+  entries[1].accounts[0].status='expired';nextAccount='c1';
+  await page.reload();await settled();
+  await row('china','c1').getByRole('button',{name:'重新连接',exact:true}).click();await settled();
+  assert.equal(calls.at(-1).path,'/oauth/outlook_china/connect');
+  assert.equal(entries[1].accounts.length,2);assert.equal(entries[1].accounts[0].status,'connected');
+  assert.equal(entries[1].accounts.find(a=>a.isDefault).id,'c2');
+  const kvWrites=()=>calls.filter(c=>c.path==='/kv').length;
+  const before=kvWrites();failDisconnect=true;
+  await row('china','c1').getByRole('button',{name:'断开',exact:true}).click();await settled();
+  assert.equal(await page.locator('.account').count(),4);assert.equal(kvWrites(),before);
+  failDisconnect=false;await row('china','c1').getByRole('button',{name:'断开',exact:true}).click();await settled();
+  assert.equal(calls.at(-1).path,'/oauth/outlook_china/accounts/c1');
+  assert.deepEqual(entries.map(e=>e.accounts.map(a=>a.id)),[['g1','g2'],['c2']]);assert.equal(kvWrites(),before);
+  assert.equal(await page.locator('.account').count(),3);
+  await page.locator('#cloud').selectOption('china');await settled();nextAccount='c1';
+  await page.locator('#connect').click();await settled();
   await page.locator('#default-cloud').click();await settled();assert.equal(config.default_cloud,'china');assert.equal(config.keep,'preference');
+  for(const e of entries)for(const a of e.accounts)a.label=(e.key==='outlook_global'?'全球演示':'中国区演示')+' · '+a.id+'@example.test';
+  await page.reload();await settled();assert.equal(await page.locator('.account').count(),4);
+  await fs.mkdir(screenshots,{recursive:true});
+  await page.screenshot({path:fileURLToPath(new URL('outlook-host-settings-light.png',screenshots)),fullPage:true});
   mode='dark';await page.reload();await settled();assert.equal(await page.locator('#cloud').inputValue(),'china');
   await page.screenshot({path:fileURLToPath(new URL('outlook-host-settings-dark.png',screenshots)),fullPage:true});
   await page.setViewportSize({width:320,height:940});
@@ -84,5 +111,5 @@ try {
   failLoad=true;await page.reload();await page.waitForFunction(()=>document.querySelector('#setup-note').textContent.includes('Unable to load'));
   assert(await page.locator('#connect').isDisabled());assert(await page.locator('#save-client').isDisabled());
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
-  console.log('PASS Host OAuth settings: app setup, missing-config gate, connect/disconnect, failed disconnect, cloud isolation/default, legacy state ignored, XSS, four locales + fallback, 320px layout, load failure; 4 fixture screenshots.');
+  console.log('PASS Host OAuth settings: app setup, missing-config gate, connect/disconnect, failed disconnect, four simultaneous accounts across both clouds, per-cloud defaults, reconnect deduplication and row isolation, disconnect isolation, legacy state ignored, XSS, four locales + fallback, 320px layout, load failure; 4 fixture screenshots.');
 } finally {await browser.close();}

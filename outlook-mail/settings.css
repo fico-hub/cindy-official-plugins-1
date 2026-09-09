@@ -19,3 +19,7 @@ a { color: var(--text-primary); text-underline-offset: 3px; }
 code { overflow-wrap: anywhere; font-size: 11px; }
 #status { overflow-wrap: anywhere; }
 #status:empty { display: none; }
+
+.accounts-title { margin: 20px 0 4px; font-size: 14px; font-weight: 600; }
+.account-group { margin-top: 14px; }
+.account-group h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); }

@@ -40,23 +40,37 @@
     $('connect').disabled = busy || !loaded || !e?.clientConfigured;
     $('reset-client').disabled = busy || !e?.clientCustom;
     $('accounts').textContent = '';
-    if (loaded && !e?.accounts?.length) { const p = document.createElement('p'); p.className='hint'; p.textContent=t('noAccounts'); $('accounts').appendChild(p); }
-    for (const a of e?.accounts || []) {
-      const row = document.createElement('div'); row.className='account';
-      const name = document.createElement('span'); name.className='identity'; name.textContent=a.label || a.id;
-      const tag = document.createElement('span'); tag.className='tag';
-      tag.textContent = a.status !== 'connected' ? t('expired') : a.scopeStale ? t('scopeStale') : a.isDefault ? t('defaultAccount') : t('connected');
-      name.appendChild(tag); row.appendChild(name);
-      if (a.status !== 'connected' || a.scopeStale) addButton(row,t('reconnect'),connect);
-      if (!a.isDefault && a.status === 'connected') addButton(row,t('setDefault'),async () => {
-        await request('/oauth/'+c.key+'/default',{method:'POST',body:JSON.stringify({accountId:a.id})}); status(t('saved'));
-      });
-      addButton(row,t('disconnect'),async () => {
-        await request('/oauth/'+c.key+'/accounts/'+encodeURIComponent(a.id),{method:'DELETE'}); status(t('disconnected'));
-      });
-      $('accounts').appendChild(row);
+    if (!loaded) return;
+    // Account controls bind to the row's cloud, independently of the service
+    // selected for the next sign-in. Both groups remain visible and connected.
+    for (const [cloud,cfg] of Object.entries(clouds)) {
+      const groupEntry = entries.find(entry => entry.key === cfg.key);
+      const group = document.createElement('section');
+      group.className='account-group'; group.dataset.cloud=cloud;
+      const heading=document.createElement('h2');heading.textContent=t(cloud);
+      group.appendChild(heading);
+      if (!groupEntry?.accounts?.length) {
+        const note=document.createElement('p');note.className='hint';note.textContent=t('noAccounts');group.appendChild(note);
+      }
+      for (const a of groupEntry?.accounts || []) {
+        const row=document.createElement('div');row.className='account';row.dataset.accountId=a.id;
+        const name=document.createElement('span');name.className='identity';name.textContent=a.label || a.id;
+        const tag=document.createElement('span');tag.className='tag';
+        const labels=[a.isDefault ? t('defaultAccount') : '',a.status !== 'connected' ? t('expired') : a.scopeStale ? t('scopeStale') : t('connected')];
+        tag.textContent=labels.filter(Boolean).join(' · ');name.appendChild(tag);row.appendChild(name);
+        if (a.status !== 'connected' || a.scopeStale) addButton(row,t('reconnect'),()=>connect(cloud));
+        if (!a.isDefault && a.status === 'connected') addButton(row,t('setDefault'),async()=>{
+          await request('/oauth/'+cfg.key+'/default',{method:'POST',body:JSON.stringify({accountId:a.id})});status(t('saved'));
+        });
+        addButton(row,t('disconnect'),async()=>{
+          await request('/oauth/'+cfg.key+'/accounts/'+encodeURIComponent(a.id),{method:'DELETE'});status(t('disconnected'));
+        });
+        group.appendChild(row);
+      }
+      $('accounts').appendChild(group);
     }
   }
+
   async function load() {
     try {
       const values = await Promise.all([request('/oauth'),request('/kv')]);
@@ -73,9 +87,9 @@
     try { await fn(); } catch (e) { status(e.message || t('requestFailed')); }
     finally { await load(); busy=false; render(); }
   }
-  async function connect() {
+  async function connect(cloud = selected) {
     status(t('connecting'));
-    const r = await request('/oauth/'+clouds[selected].key+'/connect',{method:'POST'});
+    const r = await request('/oauth/'+clouds[cloud].key+'/connect',{method:'POST'});
     if (!r.ok) { status(errorText(r)); return; }
     status(t('connected')+': '+(r.account?.label || ''));
   }

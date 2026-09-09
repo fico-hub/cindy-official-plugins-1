@@ -1,12 +1,12 @@
 {
   "title": "Connect your mailbox",
   "intro": "Connect an existing Microsoft mailbox. Cindy manages OAuth authorization and tokens.",
-  "region": "Email service",
+  "region": "Service for the next account",
   "global": "Outlook / Microsoft 365 (global)",
   "china": "Microsoft 365 China (21Vianet)",
   "boundary": "Select the region of your email service, independently of your Cindy region. Other providers and on-premises Exchange are not supported.",
   "defaultCloud": "Use this service by default",
-  "connect": "Connect account",
+  "connect": "Add account",
   "advanced": "Application setup",
   "setupHelp": "For plugin maintainers or your IT administrator: register a public desktop application and supply its Client ID. No client secret is needed. Changing the application requires reconnecting existing accounts.",
   "redirect": "Registered redirect URI",
@@ -45,5 +45,7 @@
   "ACCOUNT_LIMIT": "Account limit reached. Disconnect an unused account first.",
   "VAULT_WRITE_FAILED": "Unable to save authorization. Check local storage and try again.",
   "LISTEN_FAILED": "The local sign-in callback port is occupied. Close the other sign-in window and retry.",
-  "SERVICE_UNAVAILABLE": "The authorization service is unavailable. Try again later."
+  "SERVICE_UNAVAILABLE": "The authorization service is unavailable. Try again later.",
+  "accountsTitle": "All mail accounts",
+  "multiAccountHelp": "Global and China accounts stay connected together. The service selector only chooses where to add an account; it does not disconnect other accounts. Each cloud has its own default."
 }

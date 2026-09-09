@@ -242,3 +242,48 @@ test('invalid Host response status never reports a write as definitely unexecute
     assert.equal(r.ok,false);assert.match(r.message,/execution_status=unknown/);assert.equal(h.requests.length,1);
   }
 });
+
+function multiAccounts() {
+  const accounts=structuredClone(fixture);
+  accounts[1].accounts.push({id:'c2',label:'China second',status:'connected',isDefault:false});
+  return accounts;
+}
+test('four simultaneous accounts route identical message IDs to their own cloud and identity',async()=>{
+  const h=harness({accounts:multiAccounts(),reply:response({id:'same-message',body:{contentType:'text',content:'fixture'}})});
+  const listing=await h.accounts();
+  assert.deepEqual(Array.from(listing.result.regions,r=>r.accounts.length),[2,2]);
+  for(const account of ['g1','c1','g2','c2']){
+    const r=await h.call({action:'read',message_id:'same-message',account});assert(r.ok);
+    const cloud=account.startsWith('g')?'global':'china';assert.equal(r.result.cloud,cloud);
+    const req=h.requests.at(-1);assert.equal(req.authAccount,account);
+    assert.equal(new URL(req.url).hostname,cloud==='global'?'graph.microsoft.com':'microsoftgraph.chinacloudapi.cn');
+  }
+});
+test('each cloud default changes independently and explicit identity still overrides both',async()=>{
+  const accounts=multiAccounts(),h=harness({accounts});
+  accounts[1].accounts.forEach(a=>a.isDefault=a.id==='c2');
+  await h.call({action:'search',cloud:'global'});assert.equal(h.requests.at(-1).authAccount,'g1');
+  await h.call({action:'search',cloud:'china'});assert.equal(h.requests.at(-1).authAccount,'c2');
+  accounts[0].accounts.forEach(a=>a.isDefault=a.id==='g2');
+  await h.call({action:'search',cloud:'global'});assert.equal(h.requests.at(-1).authAccount,'g2');
+  await h.call({action:'search',cloud:'china'});assert.equal(h.requests.at(-1).authAccount,'c2');
+  await h.call({action:'search',account:'g1'});assert.equal(h.requests.at(-1).authAccount,'g1');
+});
+test('disconnecting one account leaves the other three usable and never silently substitutes an account',async()=>{
+  const accounts=multiAccounts(),h=harness({accounts});
+  accounts[1].accounts=accounts[1].accounts.filter(a=>a.id!=='c1');
+  const removed=await h.call({...send,account:'c1'});assert(!removed.ok);assert.equal(h.requests.length,0);
+  for(const account of ['g1','g2','c2']){assert((await h.call({action:'search',account})).ok);assert.equal(h.requests.at(-1).authAccount,account);}
+  assert.deepEqual(Array.from((await h.accounts()).result.regions,r=>r.accounts.length),[2,1]);
+});
+test('an unconfigured or expired China connection does not block either global account',async()=>{
+  for(const state of ['unconfigured','expired']){
+    const accounts=multiAccounts();
+    if(state==='unconfigured')accounts[1].clientConfigured=false;
+    else accounts[1].accounts.forEach(a=>a.status='expired');
+    const h=harness({accounts});
+    assert(!(await h.call({...send,account:'c1'})).ok);assert.equal(h.requests.length,0);
+    for(const account of ['g1','g2'])assert((await h.call({action:'search',account})).ok);
+    assert.deepEqual(h.requests.map(r=>r.authAccount),['g1','g2']);
+  }
+});

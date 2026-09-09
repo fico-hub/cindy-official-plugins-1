@@ -1,12 +1,12 @@
 {
   "title": "连接邮箱",
   "intro": "连接现有微软邮箱，由 Cindy 托管 OAuth 授权和令牌。",
-  "region": "邮箱服务",
+  "region": "新增账号的邮箱服务",
   "global": "Outlook / Microsoft 365（全球版）",
   "china": "Microsoft 365（世纪互联中国区）",
   "boundary": "按邮箱所属服务区域选择，与 Cindy 的区域无关。不支持其他服务商邮箱或本地 Exchange。",
   "defaultCloud": "将此服务设为默认",
-  "connect": "连接账号",
+  "connect": "添加账号",
   "advanced": "应用配置",
   "setupHelp": "供插件维护者或企业 IT 配置：注册公共桌面应用后填写 Client ID，无需客户端密钥。更换应用后，已有账号需要重新连接。",
   "redirect": "应用中需要注册的回调地址",
@@ -45,5 +45,7 @@
   "ACCOUNT_LIMIT": "账号数量已达上限，请先断开不再使用的账号。",
   "VAULT_WRITE_FAILED": "保存授权失败，请检查本地存储后重试。",
   "LISTEN_FAILED": "本地登录回调端口被占用，请关闭其他登录窗口后重试。",
-  "SERVICE_UNAVAILABLE": "授权服务暂不可用，请稍后重试。"
+  "SERVICE_UNAVAILABLE": "授权服务暂不可用，请稍后重试。",
+  "accountsTitle": "全部邮箱账号",
+  "multiAccountHelp": "全球版和中国区账号可同时保持登录。上方服务选择只影响新增账号，不会断开已连接账号；每个区域分别设置默认账号。"
 }
